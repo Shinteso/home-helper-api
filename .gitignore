@@ -137,3 +137,9 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+hub.db
+images/
+discord bot token MTQ3OTU1MzY3NjY1N.txt
+bot.js
+.idea/
