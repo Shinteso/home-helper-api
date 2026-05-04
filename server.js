@@ -122,5 +122,43 @@ app.get('/api/screenshot', (req, res) => {
   res.json({ url })
 })
 
+// basic health check endpoint
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "ok",
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString(),
+  });
+});
+
 const PORT = 3001
+
+// Tasks table setup
+db.exec(`CREATE TABLE IF NOT EXISTS tasks (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  title TEXT NOT NULL,
+  description TEXT,
+  createdAt TEXT DEFAULT (datetime('now'))
+)`)
+
+// GET all tasks
+app.get('/api/tasks', (req, res) => {
+  const tasks = db.prepare('SELECT * FROM tasks ORDER BY createdAt DESC').all()
+  res.json(tasks)
+})
+
+// POST a new task
+app.post('/api/tasks', (req, res) => {
+  const { title, description } = req.body
+  if (!title) return res.status(400).json({ error: 'Title is required' })
+  const stmt = db.prepare('INSERT INTO tasks (title, description) VALUES (?, ?)')
+  const result = stmt.run(title, description || '')
+  res.json({ id: result.lastInsertRowid, title, description })
+})
+
+// DELETE a task
+app.delete('/api/tasks/:id', (req, res) => {
+  db.prepare('DELETE FROM tasks WHERE id = ?').run(req.params.id)
+  res.json({ success: true })
+})
 app.listen(PORT, () => console.log(`API server running on port ${PORT}`))
